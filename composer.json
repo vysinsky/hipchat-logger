@@ -1,0 +1,21 @@
+{
+    "name": "vysinsky/hipchat-logger",
+    "description": "Simple logger class for HipChat",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michal Vyšinský",
+            "email": "vysinsky@live.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"Vysinsky\\HipChat\\": "src/"}
+    },
+    "require": {
+        "page-boost/hipchat-php-v2": "dev-master",
+        "guzzlehttp/guzzle": "~4.0",
+        "psr/log": "@dev"
+    }
+
+}
