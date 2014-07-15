@@ -35,7 +35,6 @@ class Logger extends Tracy\Logger
 		$message = ucfirst($priority . ': ');
 		if ($value instanceof Exception) {
 			$message .= $value->getMessage();
-			$message .= $this->createLinkToLogfile($logPath);
 			$priority = LogLevel::CRITICAL;
 		} else {
 			$message .= (string) $value;
@@ -44,23 +43,6 @@ class Logger extends Tracy\Logger
 		$this->logger->log($priority, $message);
 
 		return $logPath;
-	}
-
-
-	private function extractLogPath($path)
-	{
-		return str_replace($_SERVER['DOCUMENT_ROOT'], NULL, $path);
-	}
-
-
-	private function createLinkToLogfile($path)
-	{
-		$protocol = 'http://';
-
-		if (isset($_SERVER['HTTPS'])) {
-			$protocol = 'https://';
-		}
-		return ' <a href="' . $protocol . $_SERVER['HTTP_HOST'] . $this->extractLogPath($path) . '">(Open log file)</a>';
 	}
 
 }

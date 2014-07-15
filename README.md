@@ -29,4 +29,4 @@ Usage (in bootstrap.php):
 $configurator->enableDebugger(__DIR__ . '/../log'); // put it after this line
 Debugger::setLogger(new Logger('<Your room API token>', '<Your room name>'));
 ```
-That's all not on production environment you will get notice to HipChat's room. Exceptions will be sent with link to easily open logfile
+That's all now on production environment you will get notice to HipChat's room.
