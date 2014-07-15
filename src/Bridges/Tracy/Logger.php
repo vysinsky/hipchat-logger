@@ -40,6 +40,8 @@ class Logger extends Tracy\Logger
 			$message .= (string) $value;
 		}
 
+		$message .= ' (' . $_SERVER['HTTP_HOST'] . ')';
+
 		$this->logger->log($priority, $message);
 
 		return $logPath;
