@@ -1,7 +1,6 @@
 {
     "name": "vysinsky/hipchat-logger",
     "description": "Simple logger class for HipChat",
-    "minimum-stability": "dev",
     "license": "MIT",
     "authors": [
         {
