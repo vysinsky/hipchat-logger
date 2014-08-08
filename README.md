@@ -38,6 +38,8 @@ hipChatLogger:
     linkFactory: [MyLinkFactory::createLink] # Set link factory
 ```
 
+## Other features
+
 ### Filters
 
 You can now easilly filter messages and decide, whether message should be sent. Filters are simple callbacks which get $level, $message and $context as parameter. Filter return boolean $shouldSend. As soon as any filter returns FALSE execution is stopped.
