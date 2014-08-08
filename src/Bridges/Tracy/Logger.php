@@ -16,6 +16,9 @@ class Logger extends Tracy\Logger
 	 */
 	private $logger;
 
+	/** @var callable|null */
+	private $linkToLogFileFactory;
+
 
 	/**
 	 * @param  string $apiToken
@@ -25,6 +28,18 @@ class Logger extends Tracy\Logger
 	{
 		parent::__construct(Tracy\Debugger::$logDirectory, Tracy\Debugger::$email, Tracy\Debugger::getBlueScreen());
 		$this->logger = new Vysinsky\HipChat\Logger($apiToken, $room);
+	}
+
+
+	public function setLinkToLogFileFactory(callable $factory)
+	{
+		$this->linkToLogFileFactory = $factory;
+	}
+
+
+	public function extractLogPath($path)
+	{
+		return str_replace($_SERVER['DOCUMENT_ROOT'], NULL, $path);
 	}
 
 
@@ -40,7 +55,19 @@ class Logger extends Tracy\Logger
 			$message .= (string) $value;
 		}
 
-		$message .= ' (' . $_SERVER['HTTP_HOST'] . ')';
+		if ($this->linkToLogFileFactory && is_callable($this->linkToLogFileFactory)) {
+			$linkToLogFile = $this->linkToLogFileFactory($this, $logPath);
+			if ($linkToLogFile) {
+				$protocol = 'http://';
+				if (isset($_SERVER['HTTPS'])) {
+					$protocol = 'https://';
+				}
+
+				$message .= ' <a href="' . $protocol . $_SERVER['HTTP_HOST'] . $linkToLogFile . '">(Open log file)</a>';
+			}
+		}
+
+		$message .= ' [' . $_SERVER['HTTP_HOST'] . ']';
 
 		$this->logger->log($priority, $message);
 
