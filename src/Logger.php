@@ -46,17 +46,31 @@ class Logger extends AbstractLogger
 	/** @var string */
 	private $room;
 
+	/** @var callable[] */
+	private $filters = [];
+
+
 
 	/**
 	 * @param  string $apiToken Your HipChat Room's API token
 	 * @param  string $room Your room name
+	 * @param  callable[] $filters
 	 */
-	public function __construct($apiToken, $room)
+	public function __construct($apiToken, $room, $filters = [])
 	{
 		$this->hipChat = HipChatFactory::instance();
 		$this->hipChat->setAccessToken($apiToken);
 		$this->room = $room;
+		$this->filters = $filters;
 	}
+
+
+
+	public function addFilter(callable $filter)
+	{
+		$this->filters[] = $filter;
+	}
+
 
 
 	/**
@@ -67,11 +81,19 @@ class Logger extends AbstractLogger
 	 * @param array $context
 	 * @return null
 	 */
-	public function log($level, $message, array $context = array())
+	public function log($level, $message, array $context = [])
 	{
+		foreach ($this->filters as $filter) {
+			$shouldSend = call_user_func_array($filter, [$level, $message, $context]);
+			if (!$shouldSend) {
+				return;
+			}
+		}
+
 		$message = $this->interpolate($message, $context);
 		$this->hipChat->room($this->room)->send($message, $this->shouldNotify($level), $this->getColor($level));
 	}
+
 
 
 	private function interpolate($message, $context)
@@ -84,10 +106,12 @@ class Logger extends AbstractLogger
 	}
 
 
+
 	private function shouldNotify($level)
 	{
 		return in_array($level, self::$notifyLevels);
 	}
+
 
 
 	private function getColor($level)

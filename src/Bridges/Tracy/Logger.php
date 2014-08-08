@@ -11,9 +11,7 @@ use Vysinsky;
 class Logger extends Tracy\Logger
 {
 
-	/**
-	 * @var Vysinsky\HipChat\Logger
-	 */
+	/** @var Vysinsky\HipChat\Logger */
 	private $logger;
 
 	/** @var callable|null */
@@ -24,10 +22,17 @@ class Logger extends Tracy\Logger
 	 * @param  string $apiToken
 	 * @param  string $room
 	 */
-	public function __construct($apiToken, $room)
+	public function __construct($apiToken, $room, $filters = [], $linkToLogFileFactory = NULL)
 	{
-		parent::__construct(Tracy\Debugger::$logDirectory, Tracy\Debugger::$email, Tracy\Debugger::getBlueScreen());
-		$this->logger = new Vysinsky\HipChat\Logger($apiToken, $room);
+		$reflection = new \ReflectionClass('Tracy\\Logger');
+		if ($reflection->getConstructor()) {
+			parent::__construct(Tracy\Debugger::$logDirectory, Tracy\Debugger::$email, Tracy\Debugger::getBlueScreen());
+		} else {
+			$this->directory = Tracy\Debugger::$logDirectory;
+			$this->email = Tracy\Debugger::$email;
+		}
+		$this->linkToLogFileFactory = $linkToLogFileFactory;
+		$this->logger = new Vysinsky\HipChat\Logger($apiToken, $room, $filters);
 	}
 
 
@@ -37,26 +42,31 @@ class Logger extends Tracy\Logger
 	}
 
 
-	public function extractLogPath($path)
-	{
-		return str_replace($_SERVER['DOCUMENT_ROOT'], NULL, $path);
-	}
-
-
-	function log($value, $priority = self::INFO)
+	public function log($value, $priority = self::INFO)
 	{
 		$logPath = parent::log($value, $priority);
+
+		if (!$logPath) { // old version of tracy
+			if (isset($value[3])) {
+				$logFile = trim(substr($value[3], 3));
+				$logPath = $this->directory . '/' . $logFile;
+			}
+		}
 
 		$message = ucfirst($priority . ': ');
 		if ($value instanceof Exception) {
 			$message .= $value->getMessage();
 			$priority = LogLevel::CRITICAL;
 		} else {
-			$message .= (string) $value;
+			if (is_array($value) && isset($value[1])) {
+				$message .= $value[1];
+			} else {
+				$message .= (string) $value;
+			}
 		}
 
 		if ($this->linkToLogFileFactory && is_callable($this->linkToLogFileFactory)) {
-			$linkToLogFile = $this->linkToLogFileFactory($this, $logPath);
+			$linkToLogFile = call_user_func_array($this->linkToLogFileFactory, [$this, $logPath]);
 			if ($linkToLogFile) {
 				$protocol = 'http://';
 				if (isset($_SERVER['HTTPS'])) {
