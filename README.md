@@ -21,15 +21,38 @@ Class `Vysinsky\HipChat\Logger` has some static properties you can use to config
 
 ### Nette Framework ([Tracy](http://tracy.nette.org/en/))
 
-Bridge class: `Vysinsky\HipChat\Bridges\Tracy\Logger`
+For Nette there is compiler extension. Just add it to your extensions list in neon configuration:
 
-Usage (in bootstrap.php):
+```
+hipChatLogger: Vysinsky\HipChat\Bridges\Tracy\DI\Extension
+```
+
+And add some configuration:
+
+```
+hipChatLogger:
+    accessToken: yourAccessToken
+    roomName: test
+    filters:
+        - [LoggerFilter, filterAccess]
+    linkFactory: [MyLinkFactory::createLink] # Set link factory
+```
+
+### Filters
+
+You can now easilly filter messages and decide, whether message should be sent. Filters are simple callbacks which get $level, $message and $context as parameter. Filter return boolean $shouldSend. As soon as any filter returns FALSE execution is stopped.
+
+Example (we don't want to log 404s):
 
 ```php
-$configurator->enableDebugger(__DIR__ . '/../log'); // put it after this line
-Debugger::setLogger(new Logger('<Your room API token>', '<Your room name>'));
+class LoggerFilter 
+{
+    function filterAccess($level, $message, $context)
+    {
+        return $level !== 'access';
+    }
+}
 ```
-That's all now on production environment you will get notice to HipChat's room.
 
 ### Log file link factory
 
