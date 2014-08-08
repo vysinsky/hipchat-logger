@@ -35,10 +35,10 @@ That's all now on production environment you will get notice to HipChat's room.
 
 You can set callback factory to Logger, which will create link to log file and send it in message if link is available.
 
-You can set it with calling `setLinkToLogFileFactory` (only in Tracy\Bridges\Logger):
+You can set it with calling `setLinkToLogFileFactory` (only in Vysinsky\HipChat\Bridges\Tracy):
 
 ```php
-$logger->setLinkToLogFileFactory(function(Tracy\Bridges\Logger $logger, $logPath){
+$logger->setLinkToLogFileFactory(function(Vysinsky\HipChat\Bridges\Tracy $logger, $logPath){
 	return $logger->extractLogPath($logPath);
 });
 ```
