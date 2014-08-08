@@ -26,7 +26,13 @@ class Logger extends Tracy\Logger
 	 */
 	public function __construct($apiToken, $room)
 	{
-		parent::__construct(Tracy\Debugger::$logDirectory, Tracy\Debugger::$email, Tracy\Debugger::getBlueScreen());
+		$reflection = new \ReflectionClass('Tracy\\Logger');
+		if($reflection->getConstructor()) {
+			parent::__construct(Tracy\Debugger::$logDirectory, Tracy\Debugger::$email, Tracy\Debugger::getBlueScreen());
+		} else {
+			$this->directory = Tracy\Debugger::$logDirectory;
+			$this->email = Tracy\Debugger::$email;
+		}
 		$this->logger = new Vysinsky\HipChat\Logger($apiToken, $room);
 	}
 
@@ -47,16 +53,27 @@ class Logger extends Tracy\Logger
 	{
 		$logPath = parent::log($value, $priority);
 
+		if(!$logPath) { // old version of tracy
+			if(isset($value[3])) {
+				$logFile = trim(substr($value[3], 3));
+				$logPath = $this->directory . '/' . $logFile;
+			}
+		}
+
 		$message = ucfirst($priority . ': ');
 		if ($value instanceof Exception) {
 			$message .= $value->getMessage();
 			$priority = LogLevel::CRITICAL;
 		} else {
-			$message .= (string) $value;
+			if(is_array($value) && isset($value[1])) {
+				$message .= $value[1];
+			} else {
+				$message .= (string) $value;
+			}
 		}
 
 		if ($this->linkToLogFileFactory && is_callable($this->linkToLogFileFactory)) {
-			$linkToLogFile = $this->linkToLogFileFactory($this, $logPath);
+			$linkToLogFile = call_user_func_array($this->linkToLogFileFactory, [$this, $logPath]);
 			if ($linkToLogFile) {
 				$protocol = 'http://';
 				if (isset($_SERVER['HTTPS'])) {
