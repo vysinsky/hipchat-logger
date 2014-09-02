@@ -73,15 +73,25 @@ class Logger extends Tracy\Logger
 					$protocol = 'https://';
 				}
 
-				$message .= ' <a href="' . $protocol . $_SERVER['HTTP_HOST'] . $linkToLogFile . '">(Open log file)</a>';
+				$message .= ' <a href="' . $protocol . $this->resolveHost() . $linkToLogFile . '">(Open log file)</a>';
 			}
 		}
 
-		$message .= ' [' . $_SERVER['HTTP_HOST'] . ']';
+		$message .= ' [' . $this->resolveHost() . ']';
 
 		$this->logger->log($priority, $message);
 
 		return $logPath;
+	}
+
+
+	private function resolveHost()
+	{
+		if (isset($_SERVER['HTTP_HOST'])) {
+			return $_SERVER['HTTP_HOST'];
+		} else {
+			return isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : NULL;
+		}
 	}
 
 }
