@@ -77,7 +77,11 @@ class Logger extends Tracy\Logger
 			}
 		}
 
-		$message .= ' [' . $this->resolveHost() . ']';
+		if (isset($value[2])) {
+			$message .= ' [' . trim(str_replace('@', NULL, $value[2])) . ']';
+		} else {
+			$message .= ' [' . $this->resolveHost() . ']';
+		}
 
 		$this->logger->log($priority, $message);
 
